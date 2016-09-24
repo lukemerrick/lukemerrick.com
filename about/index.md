@@ -18,6 +18,4 @@ Hi there. This website is a brand new upgrade of my homepage and is still quite 
 * **Aspiring data scientist**: I plan to use this website to publish some of what I work on in and out of school over the next year at least.
 * **Traveller**: I spent summer 2016 in Japan and [wrote a blog about it]({{ site.url }}/japan-blog) if you are interested.
 
-## My Personal Mission Statement
-
-With a passion for leveraging scientific analysis and creativity in equal measure, I am currently pursuing an undergraduate education at the University of Virginia in systems engineering, computer science, and the Japanese language. While my technical skills lend themselves to getting knee-deep in quantitative analysis and rapid idea prototyping, my passion for an engaged exchange of ideas leads me to seek a vocal and active role in whatever teams I work with.
+I have a passion for leveraging scientific analysis and creativity in equal measure. While my technical skills lend themselves to getting knee-deep in quantitative analysis and rapid idea prototyping, my passion for an engaged exchange of ideas leads me to seek a vocal and active role in whatever teams I work with. I am a big fan of Design Thinking, Systems Thinking, and applying the engineering process to solve real and human problems.
