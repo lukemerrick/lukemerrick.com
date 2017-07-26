@@ -1,6 +1,7 @@
 ---
 layout: post
 title: about me
+aboutpage: True
 feature: assets/img/metalpattern.jpg
 tags: [about, data science, machine learning, theme, bio, student]
 date: 2017-04-21
