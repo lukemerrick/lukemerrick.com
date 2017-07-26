@@ -3,7 +3,7 @@ layout: post
 project: True
 title: mailing acquisition case
 feature: assets/img/woodpattern.jpg
-excerpt: "a full machine learning pipeline to provide predictions for effective mailings in a mailing acquisition campaign case study"
+excerpt: "A full machine learning pipeline to provide predictions for effective mailings in a mailing acquisition campaign case study"
 tags: [data science, machine learning, student, case study]
 date: 2017-04-21
 comments: false
