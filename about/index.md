@@ -16,8 +16,8 @@ I have a passion for leveraging quantitative analysis and creative thinking in e
 Feel free to drop me a line: [contact@lukemerrick.com][email]
 
 [soteris]: https://www.soteris.com/
-[infimum]: {{ site.url }} /infimum_technologies/
-[mailing]: {{ site.url }} /sys_eval_case/
-[selfies]: {{ site.url }} /deep_vision_selfies/
-[projects]: {{ site.url }} /projects/
+[infimum]: {{ site.url }}/infimum_technologies/
+[mailing]: {{ site.url }}/sys_eval_case/
+[selfies]: {{ site.url }}/deep_vision_selfies/
+[projects]: {{ site.url }}/projects/
 [email]: mailto:contact@lukemerrick.com
