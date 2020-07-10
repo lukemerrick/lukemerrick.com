@@ -1,0 +1,35 @@
+body {
+    max-width: 750px;
+    margin: 0 auto;
+    margin-top: initial;
+    padding: 2rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 300;
+    margin-top: 2.0rem;
+    margin-bottom: 0.5rem;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+h2 {
+    font-size: 3.4rem;
+}
+
+h2:after {
+    border-bottom: 1px solid #606c76;
+    content: '';
+    width: 8rem;
+    display: block;
+    margin: 0 auto;
+    height: 1px;
+}
+
+header{
+    /* padding-top: 0;
+    padding-bottom: 0.5rem; */
+    font-size: 2.6rem;
+}
