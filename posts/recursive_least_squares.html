@@ -32,80 +32,190 @@
         <p>2020-07-09</p>
         <!-- BEGIN GENERATED FROM MARKDOWN -->
         <h1>Recursive Least Squares for ML</h1>
-        <h2>Overview</h2>
-        <p>Recently I've been working with the recursive formulation of least-squares regression. At the time of writing, there are a lot of solid resources for the signal processing view of recursive least squares (like <a href="https://en.wikipedia.org/wiki/Recursive_least_squares_filter">Wikipedia's article</a>), but it was harder for me to find a good write-up from the machine learning view (e.g. as a <a href="https://arxiv.org/abs/1805.08136">meta-learning-friendly differentiable closed-form solver</a>). This is my attempt to write things in langauge friendlier to machine-learning-minded people like myself.</p>
-        <h2>Linear model for regression</h2>
-        <p>One of the simplest models we use in the regression setting of supervised learning is a linear model. Such a model is parameterized by a vector <span class="arithmatex">\(\theta\)</span> such that we predict scalar target <span class="arithmatex">\(y\)</span> as <span class="arithmatex">\(\hat{y}_i = \theta^\intercal x_i\)</span> for vector input <span class="arithmatex">\(x_i\)</span>.</p>
-        <h2>Mean squared error</h2>
-        <p>In the regression setting, it is typical to fit linear models by optimizing the <em>mean squared error</em> of the model's predictions compared to ground-truth values. Mean squared error is the squared <em>Euclidean distance</em> / squared <em><span class="arithmatex">\(\ell_2\)</span> distance</em> between a vector of predictions and a vector of ground-truth values.</p>
-        <p>When our training data <span class="arithmatex">\((x_i, y_i)_{i=1}^n\)</span> is organized into matrix form <span class="arithmatex">\(X, Y\)</span> (with <span class="arithmatex">\(Y\)</span> having just a single column), our prediction are <span class="arithmatex">\(\hat{Y} = X \theta\)</span>  and we can express the mean squared error loss as:</p>
-        <p><span class="arithmatex">\(L = \frac{1}{n} (Y - \hat{Y})^ \intercal(Y - \hat{Y}) = \frac{1}{n} \sum_{i}(y_i - \hat{y}_i)^2\)</span>. </p>
-        <p>By first order optimality conditions (i.e. gradient being zero), the loss-minimizing parameter vector is:</p>
-        <p><span class="arithmatex">\(\hat{\theta} = (X ^\intercal X)^{-1}X ^\intercal Y\)</span>.</p>
-        <h2>Weighted squared error</h2>
-        <p>We may for various reasons want to give some of our examples more or less weight than others in our loss function. For a weight vector <span class="arithmatex">\(w = (w_i)_{i=1}^n\)</span> we express the more general weighted squared loss:</p>
-        <p><span class="arithmatex">\(L = \frac{1}{\sum_i w_i} (Y - \hat{Y}) ^\intercal \text{diag}(w) (Y - \hat{Y}) = \frac{1}{\sum_i w_i} \sum_{i}w_i(y_i - \hat{y}_i)^2\)</span>.</p>
-        <p>Similar to the equally-weighted case, first-order optimality conditions give us a nice closed-form solution for the optimal parameters of a linear model:</p>
-        <p><span class="arithmatex">\(\hat{\theta} = (X ^\intercal \text{diag}(w) X)^{-1}X ^\intercal \text{diag}(w) Y\)</span>.</p>
-        <h2><span class="arithmatex">\(\ell_2\)</span> regularized weighted squared error</h2>
-        <p>We may also for various reasons want to constrain our model's parameters to have a small squared <span class="arithmatex">\(\ell_2\)</span> norm, i.e. <span class="arithmatex">\(||\theta||_2^2 &lt; \text{some_size}\)</span>. This approach is called Ridge regression and corresponds to adding a weight-decay step to a (stochastic) gradient descent optimizer. By using a Lagrange multiplier <span class="arithmatex">\(\lambda\)</span>, we express our regularized loss as:</p>
-        <p><span class="arithmatex">\(L = \frac{1}{\sum_i w_i} (Y - \hat{Y}) ^\intercal \text{diag}(w) (Y - \hat{Y}) + \lambda \theta ^\intercal \theta = \frac{1}{\sum_{i=1}^n w_i} \sum_{i=1}^n w_i(y_i - \hat{y}_i)^2 + \lambda \sum_{j=1}^d \theta_j^2\)</span>.</p>
-        <p>This regularization penalty is also differentiable with respect to our parameter vector <span class="arithmatex">\(\theta\)</span>, and we keep a nice closed-form solution after adding it:</p>
-        <p><span class="arithmatex">\(\hat{\theta} = (X ^\intercal \text{diag}(w) X + \lambda I)^{-1}X ^\intercal \text{diag}(w) Y\)</span>.</p>
-        <h2>An online setting</h2>
-        <p>In certain applications related to canonical supervised learning, like signal processing and online learning, data is supplied in sequential batches or even as a stream of single examples, rather than a one-time batched dataset. In such applications, it is desirable to update our model with every bit of new information.</p>
-        <h3>Weights and regularization in an online setting</h3>
-        <p>Before going further into this a setting, we must first be careful how we define our weighting and regularization strategy when we no longer are thinking in terms of a fixed number of training examples. Here we shall explore an exponentially-decaying weighting scheme, as is typical in the signal processing use-case. In this weighting scheme, we define a decay (aka "dampening") parameter <span class="arithmatex">\(\delta\)</span> which dictates weights:</p>
-        <p><span class="arithmatex">\(w = ((1-\delta)^{n-1}, (1-\delta)^{n-2}, \ldots, (1-\delta)^1, 1)\)</span></p>
-        <p>for a sequence of <span class="arithmatex">\(n\)</span> examples. This is a nice scheme since it reduces our weighting to a single scalar parameter, and also because if we acquire <span class="arithmatex">\(m\)</span> more examples, our new weight vector can be expressed in terms of our old weight vector: </p>
-        <p><span class="arithmatex">\(w' = ((1-\delta)^m w; \quad (1-\delta)^{m-1}, (1-\delta)^{m-2}, \ldots, (1-\delta)^1, 1)\)</span>.</p>
-        <p>The other benefit of a decaying weighting scheme is that it should keep the loss term from increasing without bound and overwhelming the regularization penalty in the loss function. In the limit of infinite points, the total weight sums to <span class="arithmatex">\(1/\delta\)</span>, and for many choices of <span class="arithmatex">\(\delta\)</span> we get fairly close fairly quickly. For example, if <span class="arithmatex">\(\delta = 0.01\)</span>, then with 300 examples the total weight is 95.1, while at infinite samples total weight would be 100.</p>
-        <p>If we do not use a dampening strategy, we would likely want to down-weight all points slightly at every iteration, essentially bringing back the <span class="arithmatex">\(\frac{1}{n}\)</span> term from mean squared error that was dropped in the closed-form solution (this makes sense because <span class="arithmatex">\(n\)</span> is no longer a constant in the online case!).</p>
-        <p>Even in our case, we can rescale by the total weight using the closed form geometric series equation if we really want to (though below we don't worry about it):</p>
-        <p><span class="arithmatex">\(\sum_{i=0}^{n-1}(1-\delta)^i = \frac{1-(1-\delta)^n}{\delta}\)</span></p>
-        <h3>The naive vs. recursive expression</h3>
-        <p>The naive approach to online/streaming least squares would be to (1) maintain a history of all training data since the beginning of time and (2) re-compute the closed-form solution (as expressed above) at each update. Unfortunately, this requires ever-growing storage, an ever-growing matrix multiplication <span class="arithmatex">\(X ^\intercal X\)</span> (around <span class="arithmatex">\(\mathcal{O}(d^2n)\)</span> computational complexity), and a matrix-inverse of an <span class="arithmatex">\(d \times d\)</span>-sized matrix (around <span class="arithmatex">\(\mathcal{O}(d^3)\)</span>) whenever new information is acquired. It turns out that we can do better! By using a recursive formulation, we can compute a sequence of up-until-now-optimal parameter vectors using constant-sized memory and matrix multiplications that scale in size with the batch size, not the overall number of examples. Furthermore, when we omit the <span class="arithmatex">\(\ell_2\)</span> regularization term, we can take advantage of the Woodbury matrix identity to do the matrix inversion much faster as well (<span class="arithmatex">\(\mathcal{O}(d^2)\)</span> instead of <span class="arithmatex">\(\mathcal{O}(d^2)\)</span>).</p>
-        <h3>Basic recursive algorithm</h3>
-        <p>To get into our recursive formulation, let's begin by expressing our data as two batches <span class="arithmatex">\(X_0, Y_0\)</span> and <span class="arithmatex">\(X_1, Y_1\)</span> such that <span class="arithmatex">\(X, Y\)</span> is the vertical stacking of <span class="arithmatex">\(X_0\)</span> on <span class="arithmatex">\(X_1\)</span> and <span class="arithmatex">\(Y_0\)</span> on <span class="arithmatex">\(Y_1\)</span>. We shall use <span class="arithmatex">\(n\)</span> to refer to the number of rows in <span class="arithmatex">\(X_0\)</span> and <span class="arithmatex">\(Y_0\)</span>, and <span class="arithmatex">\(m\)</span> to refer to the number of rows in <span class="arithmatex">\(X_1\)</span> and <span class="arithmatex">\(Y_1\)</span>. Let's also split up our weights while we're at it:</p>
-        <p><span class="arithmatex">\(w_0 = ((1-\delta)^{n-1}, (1-\delta)^{n-2}, \ldots, (1-\delta)^1, 1)\)</span></p>
-        <p><span class="arithmatex">\(w_1 = ((1-\delta)^{m-1}, (1-\delta)^{n-2}, \ldots, (1-\delta)^1, 1)\)</span></p>
-        <p><span class="arithmatex">\(w = ((1-\delta)^{m}w_0 \quad w_1) = ((1-\delta)^{n + m-1}, (1-\delta)^{n-2}, \ldots, (1-\delta)^1, 1)\)</span></p>
-        <p>Next, let's group our closed-form solution into two matrices <span class="arithmatex">\(A, B\)</span> such that <span class="arithmatex">\(\hat{\theta} = A^{-1}B\)</span>:</p>
-        <p><span class="arithmatex">\(A = X ^\intercal \text{diag}(w) X + \lambda I\)</span>,</p>
-        <p><span class="arithmatex">\(B = X ^\intercal \text{diag}(w) Y\)</span>.</p>
-        <p>We'll use the same breakdown for the solution when only <span class="arithmatex">\(X_0, Y_0\)</span> are known (before we see <span class="arithmatex">\(X_1, Y_1\)</span>):</p>
-        <p><span class="arithmatex">\(A_0 = X_0 ^\intercal \text{diag}(w_0) X_0 + \lambda I\)</span></p>
-        <p><span class="arithmatex">\(B_0 = X_0 ^\intercal \text{diag}(w_0) Y_0\)</span>.</p>
-        <p>From here, we can expand <span class="arithmatex">\(A\)</span> in terms of <span class="arithmatex">\(X_0, Y_0\)</span>; <span class="arithmatex">\(X_1, Y_1\)</span>; and <span class="arithmatex">\(w_0, w_1\)</span> until we hit a recursive expression:</p>
-        <p><span class="arithmatex">\(A = X ^\intercal \text{diag}(w) X + \lambda I\)</span></p>
-        <p><span class="arithmatex">\(= [X_0 ^\intercal\quad X_1 ^\intercal] diag(((1-\delta)^{m}w_0 \quad w_1))[X_0 ^\intercal\quad X_1 ^\intercal] ^\intercal + \lambda I\)</span></p>
-        <p><span class="arithmatex">\(= (1-\delta)^{m}X_0 ^\intercal diag(w_0)X_0 + X_1 ^\intercal diag(w_1)X_1 + \lambda I\)</span></p>
-        <p><span class="arithmatex">\(= (1-\delta)^{m}X_0 ^\intercal diag(w_0)X_0 + X_1 ^\intercal diag(w_1)X_1 + (1-\delta)^{m} \lambda I + (1 - (1-\delta)^{m})\lambda I\)</span></p>
-        <p><span class="arithmatex">\(= (1-\delta)^{m}A_0 + X_1 ^\intercal diag(w_1)X_1 + (1 - (1-\delta)^{m})\lambda I\)</span></p>
-        <p>Boom, recursive! If we have <span class="arithmatex">\(A\)</span> in terms of <span class="arithmatex">\(A_0\)</span> and <span class="arithmatex">\(X_1, Y_1, w_1\)</span>. As long as we persist the <span class="arithmatex">\(A\)</span> matrix (which never gets bigger), we no longer need to persist historical data. We can do the same kind of breakdown to the B matrix:</p>
-        <p><span class="arithmatex">\(B = X ^\intercal \text{diag}(w) Y\)</span></p>
-        <p><span class="arithmatex">\(= [X_0 ^\intercal\quad X_1 ^\intercal] diag(((1-\delta)^{m}w_0 \quad w_1))[Y_0 ^\intercal\quad Y_1 ^\intercal] ^\intercal\)</span></p>
-        <p><span class="arithmatex">\(= (1-\delta)^{m}X_0 ^\intercal diag(w_0)Y_0 + X_1 ^\intercal diag(w_1)Y_1\)</span></p>
-        <p><span class="arithmatex">\(= (1-\delta)^{m}B_0 + X_1 ^\intercal diag(w_1)Y_1\)</span></p>
-        <p>Using these equations, we can update <span class="arithmatex">\(A, B, \theta\)</span> at each time step in <span class="arithmatex">\(\mathcal{O}(md^2 + d^3)\)</span> (where <span class="arithmatex">\(m\)</span> is the number of examples in <span class="arithmatex">\(X_1, X_2, \ldots\)</span>), and persisting only <span class="arithmatex">\(\mathcal{O}(d^2)\)</span> memory.</p>
+        <h2>Updates</h2>
+        <ul>
+        <li>2020.10.15 -- I rewrote a lot of this post. The motivation is generic and expanded, and the math has been massaged a bit. This makes <span class="arithmatex">\(\ell_2\)</span> regularization now included in both sets of recursive equations, as well as giving expressions that are far less numerically unstable.</li>
+        </ul>
+        <h2>Why I'm writing this</h2>
+        <p>Recently I've been working with the recursive formulation of least-squares regression. At the time of writing, there are a lot of solid resources for the signal processing view of Recursive Least Squares (like <a href="https://en.wikipedia.org/wiki/Recursive_least_squares_filter">Wikipedia's RLS article</a>), but I was unable to find a good write-up from the machine learning view (e.g. as a <a href="https://arxiv.org/abs/1805.08136">differentiable closed-form solver</a>). This is my attempt to frame things in concepts and language friendlier to machine-learning-minded people like myself.</p>
+        <h2>Pre-requisite knowledge</h2>
+        <p>To follow this post, you probably will want to be somewhat familiar with the following topics:</p>
+        <ul>
+        <li>Supervised machine learning</li>
+        <li>Basic linear algebra (working with matrices and vectors)</li>
+        <li>Linear regression models</li>
+        </ul>
+        <p>Additionally, familiarity with the following will probably enhance your understanding:</p>
+        <ul>
+        <li>Computational complexity (big-<span class="arithmatex">\(O\)</span> notation)</li>
+        <li>Convex optimization (or at least the multivariable/matrix calculus that goes into it)</li>
+        </ul>
+        <h2>The ML motivation and context for RLS</h2>
+        <p><em>Skip this (long) section if you are more interested in the RLS algorithm than its application in ML (you can always come back!).</em></p>
+        <p>In the simplest settings of supervised learning, we usually think of a "machine learning problem" as finding a good way to approximate the mapping between input and output for a fixed dataset of observed input-output pairs. Most supervised learning algorithms boil down to coming up with some structure for the input-to-output mapping function with adjustable parameters (e.g. linear models, tree-based models, neural nets, etc.), and then efficiently finding a specific set of parameters which give rise to low average error between our function's output and the true outputs in the observed dataset. Somewhat confusingly, we use the word <em>model</em> to refer to the combination of a functional form and a specific set of parameters, not just the functional form (though in statistical learning theory, we call the functional form by itself the <em>hypothesis class</em> and the selected model a <em>hypothesis</em>, which I find much clearer). In more theoretical terms, this is the approach of directly applying the <a href="https://en.wikipedia.org/wiki/Empirical_risk_minimization">Empirical Risk Minimization (ERM) principle</a> to a fixed dataset to find a good approximation of the input-to-output function. </p>
+        <p>In many real-world settings, however, our dataset is far from a static collection of observations. Data is usually generated by an ongoing process, and that process can change. There are a lot of terms for this change -- dataset shift, covariate shift, concept drift, and more. In a nutshell, though, we end up in a situation in which it's best to update our approximation of the input-output function as more data becomes available.</p>
+        <p>There are a number of ML subfields that provide useful formulations of problems like this. Online Learning and Reinforcement Learning are possibly the most popular and well-established of these. Online Learning re-formulates the problem at hand as finding a function which minimizes the total error when faced with a sequence of many (potentially adversarial) error responses given in response to the current model's prediction. Often the goal is to find a sequence of model functions at each time point whose errors converge to being no worse than the errors that the best possible single model would give rise to. Reinforcement Learning re-formulates the problem as back-and-forth interaction between an <em>agent</em> and an <em>environment</em>.  The task of learning an input-to-output model turns into the task of learning a <em>policy</em> which maps <em>state</em> to <em>action</em>, while the <em>environment</em> maps that action to a <em>reward</em> and a new <em>state</em>. A good <em>policy</em> is one which achieves a high cumulative reward. </p>
+        <p>Unfortunately, these subfields' approaches are often overkill for what we see in the real world -- a slight overstepping of the traditional bounds of supervised learning due to an ever-growing dataset and a dash of dataset shift. Why are OL and RL overkill? Online Learning is concerned with a possibly adversarial response and focuses on minimizing regret compared to a single good model used for all time. This makes it an awkward match for many not-so-adversarial data-generating processes, where it can be better to worry about low absolute error than low regret. Reinforcement Learning brings to bear even more mathematical machinery to deal with the way the world reacts to the outputs of our model. When we know the world doesn't particularly care about our predictions, this extra machinery becomes cumbersome.</p>
+        <p>Faced with the reality of ML problems that slip between the cracks of sub-disciplines, practitioners often turn to some kind of <em>batch learning</em> approach in which they periodically gather a fresh dataset that includes recently-generated data and then learn a new model from scratch using this new dataset. In other cases, especially "big data" applications like ad-tech, practitioners will instead turn to computationally efficient streaming algorithms (which are sometimes called "online" algorithms just to confuse us!). These algorithms can make small updates to the parameters of the input-output approximation function every time a new data point is collected -- all without referring back to historical data. These streaming algorithms often guarantee that the model at any time will be similar to the model one would get by training a batch version of the same algorithm on a large dataset containing all data since the beginning of the streaming. RLS can be seen as one such streaming algorithm. It's certainly not the only one, nor the most popular one, but it does offer a number of compelling properties.</p>
+        <h3>Why RLS?</h3>
+        <p>RLS let's us produce the same sequence of linear models we would get if we batch-learned a new model on our entire cumulative dataset every time a new data point is added, but using about the same amount of computation as fitting just the final model on all the data. Whenever a new data point is acquired, the model for <span class="arithmatex">\(i+1\)</span> points can be computed quickly and cheaply using the <span class="arithmatex">\(i\)</span>th model, without looking at any data besides the new point. </p>
+        <p>Compared to online gradient descent, RLS is more computationally costly and is only defined for squared loss (so no generalized linear models like logistic regression). On the plus side, though, RLS is truly a closed-form solver. It doesn't require tuning a learning rate, and it is guaranteed to output the exact model parameters which would be given by fitting linear regression on all the data in one go.</p>
+        <p>By way of the signal-processing literature, RLS also comes with a <em>forgetting factor</em>, which we can use to exponentially down-weight older examples (effectively to zero, far enough back in history). This lets RLS be somewhat analogous to a batch learning approach which drops old "stale" data points.</p>
+        <h2>The ML setting for RLS</h2>
+        <h3>The data</h3>
+        <p>We consider a process that over time generates a sequence of vectors containing predictive information, as well as corresponding scalar measurements describing outcomes we'd like to predict using the information in the vectors. We'll notate these sequences as follows.</p>
+        <p>$\pmb{x}_1, \pmb{x}_2, \pmb{x}_3, \ldots $  and <span class="arithmatex">\(y_1, y_2, y_3, \ldots\)</span></p>
+        <p>For example, perhaps <span class="arithmatex">\(\pmb{x}_i\)</span> summarizes pertinent sports statistics for a team just before its <span class="arithmatex">\(i\)</span>th game, while <span class="arithmatex">\(y_i\)</span> is that team's score in the <span class="arithmatex">\(i\)</span>th game. We'd like to predict that team's score before they play, using the statistics available before the game.</p>
+        <h3>The ML objective</h3>
+        <p>We seek a system that can predict outcome measurements using information vectors, <em>with minimal error.</em> While ultimately we care about the <span class="arithmatex">\(i\)</span>th model's prediction error on the <span class="arithmatex">\(i\)</span>th outcome, when it comes to training we have to settle for using relevant historical examples to quantify the error we want to minimize.</p>
+        <h2>Design choices for RLS</h2>
+        <p>In this setting, there are many model structures we could use, many error metrics we could use, and many ways we could decide on relevant historical examples. RLS arises as the solution in this setting when we make a certain set of "design choices."</p>
+        <ul>
+        <li>First, we decide to use <span class="arithmatex">\(\ell_2\)</span> (euclidean) distance between a prediction and a true outcome as the measurement of error.</li>
+        <li>Second, when computing average error, we weight our average using weights which decay exponentially going back in time. This is our way of defining the relevance in historical examples, and it uses recency as a proxy for relevance. </li>
+        <li>Last, we will use a linear model structure, assuming <span class="arithmatex">\(y_i = \pmb{\theta}_i ^\intercal \pmb{x}_i + \epsilon\)</span> (where <span class="arithmatex">\(\pmb{\theta}_i\)</span> is a vector of model parameters and <span class="arithmatex">\(\epsilon\)</span> is unpredictable noise).</li>
+        </ul>
+        <p>Putting this all together, the <span class="arithmatex">\(i\)</span>th model is defined by a parameter vector <span class="arithmatex">\(\pmb{\theta}_i\)</span> which minimizes exponentially-weighted average error, which we'll call <span class="arithmatex">\(L_i(\pmb{\theta})\)</span>. To make the notation simpler, we'll use the total error rather than the average, but the difference is only a constant that doesn't affect the minimization.</p>
+        <p><span class="arithmatex">\(\pmb{\theta}_i = \underset{\pmb{\theta}}{\operatorname{argmin}}~L_i(\pmb{\theta}) = \underset{\pmb{\theta}}{\operatorname{argmin}}~\sum_{t=1}^i \lambda^{i - t} (y_t - \pmb{\theta}^\intercal\pmb{x}_t)^2\)</span></p>
+        <h3>Generalizing to <span class="arithmatex">\(\ell_2\)</span> regularization</h3>
+        <p>One of two generalizations I add in this derivation that I didn't find in RLS derivations on the internet is <span class="arithmatex">\(\ell_2\)</span> regularization. In many cases, ML folks have found that constraining the <span class="arithmatex">\(\ell_2\)</span> magnitude of a linear model's parameters can improve overfitting (and also some of the matrix inversions used to compute the parameters). Using a Lagrange multiplier <span class="arithmatex">\(\alpha\)</span> to incorporate the typical <span class="arithmatex">\(\ell_2\)</span> norm constraint into the loss function, we get an expanded definition of <span class="arithmatex">\(L_i(\pmb{\theta})\)</span>.</p>
+        <p><span class="arithmatex">\(L_i(\pmb{\theta}) = \sum_{t=1}^i \lambda^{i - t} (y_t - \pmb{\theta}^\intercal\pmb{x}_t)^2 + \alpha ||\pmb{\theta}||_2^2\)</span></p>
+        <p>Since we use total error rather than average error in a case in which the dataset grows, we need to break up the regularization term into something added to each term in the sum. To do this, we'll use a new <span class="arithmatex">\(\ell_2\)</span> penalty term <span class="arithmatex">\(\beta\)</span>.</p>
+        <p><span class="arithmatex">\(L_i(\pmb{\theta}) = \sum_{t=1}^i \lambda^{i - t} \left( (y_t - \pmb{\theta}^\intercal\pmb{x}_t)^2 + \beta ||\pmb{\theta}||_2^2\right)\)</span>, where <span class="arithmatex">\(\alpha = \beta \sum_{t=1}^i \lambda^{i - t}\)</span></p>
+        <p>By defining <span class="arithmatex">\(\beta\)</span> in this way, we see that <span class="arithmatex">\(\alpha\)</span> does not stay fixed as <span class="arithmatex">\(i\)</span> increases, which seems odd. However, this actually accounts for the fact that we're using the weighted sum of error rather the weighted average.</p>
+        <h2>Deriving non-recursive least squares</h2>
+        <p>Let's start by deriving the <span class="arithmatex">\(\pmb{\theta} = (X^\intercal W  X)^{-1}X^\intercal W Y\)</span> weighted linear regression closed-form solution, but with a number of non-standard choices in expressions to account for <span class="arithmatex">\(\ell_2\)</span> regularization.</p>
+        <p>First, some definitions.</p>
+        <p><span class="arithmatex">\(\pmb{x}_i \in \mathbb{R}^d, \pmb{\theta}_i \in \mathbb{R}^d\)</span></p>
+        <p><span class="arithmatex">\(\pmb{w}'_i = \begin{bmatrix}
+        \lambda^{i-1} &amp; \lambda^{i-2} &amp; \cdots &amp; \lambda &amp; 1
+        \end{bmatrix}^\intercal, W'_i = \operatorname{diag}(\pmb{w}'_i)\)</span></p>
+        <p>$X'_i = \begin{bmatrix}
+        \pmb{x}_1 &amp; \pmb{x}_2 &amp; \cdots &amp; \pmb{x}_i
+        \end{bmatrix}^\intercal,
+        Y'_i = \begin{bmatrix}
+        y_1 &amp; y_2 &amp; \cdots &amp; y_i
+        \end{bmatrix}^\intercal
+        $</p>
+        <p>Note the primes in the above names. We're actually going to put our <span class="arithmatex">\(\ell_2\)</span> regularization right into the <span class="arithmatex">\(X\)</span>, <span class="arithmatex">\(Y\)</span>, and <span class="arithmatex">\(W\)</span> matrices (see this <a href="https://stats.stackexchange.com/a/164546">CrossValidated post</a> for inspiration). Not only does this new notation keep the equations short, it also makes life a lot easier when we derive the recursive formulas.</p>
+        <p>We note that <span class="arithmatex">\(\beta \operatorname{Tr}(W_i')\)</span> is our <span class="arithmatex">\(\ell_2\)</span> regularization Lagrange multiplier at time <span class="arithmatex">\(i\)</span>. We'll append <span class="arithmatex">\(d\)</span> of these values on the end of our weight vector. We'll also pad <span class="arithmatex">\(Y'\)</span> with <span class="arithmatex">\(d\)</span> zeros, and <span class="arithmatex">\(X'\)</span> with the <span class="arithmatex">\(d \times d\)</span> identity matrix. When <span class="arithmatex">\(\beta = 0\)</span>, all of these additions are zero and have no effect on the average error or its gradient.</p>
+        <p><span class="arithmatex">\(v_i = \operatorname{Tr}(W'_i)\)</span></p>
+        <p><span class="arithmatex">\(\pmb{v}_i = \begin{bmatrix}
+        v_i &amp; v_i &amp; \cdots &amp; v_i
+        \end{bmatrix}^\intercal\)</span>, $ \pmb{v}_i \in \mathbb{R}^d$</p>
+        <p><span class="arithmatex">\(\pmb{0} = \begin{bmatrix} 0 &amp; 0 &amp; \cdots &amp; 0 \end{bmatrix}^\intercal\)</span>, <span class="arithmatex">\(\pmb{0} \in \mathbb{R}^d\)</span></p>
+        <p><span class="arithmatex">\(\pmb{w}_i = \begin{bmatrix} \pmb{w}'_i \\ \pmb{v}_i \end{bmatrix},
+        W_i = \operatorname{diag}(\pmb{w}_i)\)</span></p>
+        <p><span class="arithmatex">\(X_i = \begin{bmatrix} X'_i \\ I \end{bmatrix}, Y_i = \begin{bmatrix} Y'_i \\ \pmb{0} \end{bmatrix}\)</span></p>
+        <p>Now we can define our loss in matrix notation, and see that the <span class="arithmatex">\(\ell_2\)</span> regularization term has been pushed inside the new matrices.</p>
+        <p><span class="arithmatex">\(L_i(\pmb{\theta}) = (Y'_i - X'_i \pmb{\theta})^\intercal W'_i (Y'_i - X'_i \pmb{\theta}) + \beta \operatorname{Tr}(W'_i) ||\pmb{\theta}||_2^2\)</span></p>
+        <p>$ = (Y'_i - X'_i \pmb{\theta})^\intercal W'_i (Y'_i - X'_i \pmb{\theta}) + \beta \operatorname{Tr}(W'_i) \pmb{\theta}^\intercal\pmb{\theta}$</p>
+        <p><span class="arithmatex">\(= (Y_i - X_i \pmb{\theta})^\intercal W_i (Y_i - X_i \pmb{\theta})\)</span></p>
+        <h3>Closed-form least-squares solution</h3>
+        <p>By first order optimality conditions, <span class="arithmatex">\(\nabla L_i(\pmb{\theta}_i) = 0\)</span>. We can use this fact to derive a closed-form solution for <span class="arithmatex">\(\pmb{\theta}_i\)</span>.</p>
+        <p><span class="arithmatex">\(\nabla L_i(\pmb{\theta}_i) = -2 X_i ^\intercal W_i Y_i + 2 X_i ^\intercal W_i X_i \pmb{\theta}_i = 0\)</span></p>
+        <p><span class="arithmatex">\(X_i ^\intercal W_i X_i \pmb{\theta}_i = X_i ^\intercal W_i Y_i\)</span></p>
+        <p><span class="arithmatex">\(\pmb{\theta}_i = (X_i ^\intercal W_i X_i )^{-1} X_i ^\intercal W_i Y_i\)</span></p>
+        <p>We can also see what this looks like in the conventional definition of <span class="arithmatex">\(X, Y, W\)</span>.</p>
+        <p>$
+        \pmb{\theta}_i = 
+        \left(
+        \begin{bmatrix} X'_i~^\intercal &amp; I \end{bmatrix}
+        \operatorname{diag}\left(\begin{bmatrix} \pmb{w}'_i \ \pmb{v}_i \end{bmatrix}\right)
+        \begin{bmatrix} X'_i \ I \end{bmatrix}
+        \right)^{-1}
+        \begin{bmatrix} X'_i~^\intercal &amp; I \end{bmatrix} \operatorname{diag} \left(\begin{bmatrix} \pmb{w}'_i \ \pmb{v}_i \end{bmatrix}\right)
+        \begin{bmatrix} Y'_i &amp; \pmb{0} \end{bmatrix}
+        $</p>
+        <p><span class="arithmatex">\(= (X'_i ~^\intercal W'_i X'_i + \beta \operatorname{Tr}(W'_i) I)^{-1} X'_i ~^\intercal W'_i Y'_i\)</span></p>
+        <p>Lastly, we'll simply the expression in terms of <span class="arithmatex">\(R_i = X_i ^\intercal W_i X_i\)</span> and <span class="arithmatex">\(P_i = R_i^{-1}\)</span>. We shall refer to <span class="arithmatex">\(R_i\)</span> as the covariance matrix, since when <span class="arithmatex">\(\beta =0\)</span> and <span class="arithmatex">\(X_i\)</span> has been shifted to have zero mean in all dimensions, it represents the un-normalized time-weighted sample covariance matrix. <span class="arithmatex">\(P_i\)</span> is called the precision matrix, as it is the inverse of the covariance matrix.</p>
+        <p><span class="arithmatex">\(\pmb{\theta}_i = P_i X_i ^\intercal W_i Y_i\)</span></p>
+        <h2>Deriving a Recursive Solution</h2>
+        <p>As <span class="arithmatex">\(i\)</span> increases, so does the size of <span class="arithmatex">\(X_i\)</span>, <span class="arithmatex">\(Y_i\)</span>, as well as the cost of computing <span class="arithmatex">\(\pmb{\theta}_i\)</span> from them. This is not desirable!  The computational complexity is something like <span class="arithmatex">\(\mathcal{O}(d^2n + d^3)\)</span> due to the ever-growing matrix multiplication to compute <span class="arithmatex">\(R_i\)</span> and the matrix-inverse to invert it. We'd like to slice that down to something much lighter so we can run it frequently as new data becomes available. What we'd like is a recursive expression defining <span class="arithmatex">\(\pmb{\theta}_{i+1}\)</span> in terms of <span class="arithmatex">\(\pmb{x}_{i+k}\)</span>, <span class="arithmatex">\(y_{i+k}\)</span>, and <span class="arithmatex">\(\pmb{\theta}_i\)</span>, so that the computation doesn't grow with <span class="arithmatex">\(n\)</span>. Luckily, it turns out we can get just that if we keep track of the covariance or precision matrix as well as the parameter vector.</p>
+        <h3>Generalizing to batch updates</h3>
+        <p>The second of two generalizations I add in this derivation that I didn't find in RLS derivations on the internet is batch updating. In many settings, it may actually be desirable update the parameter vector for more than one new point at once. For example, if database updates are done in batches to optimize performance and many new points become available simultaneously, or if we don't expect the parameter vector to change much point-to-point and we can run a batch update in a single call to an optimized linear algebra library much faster than we could run iterative updates in a loop.</p>
+        <p>The generalization also happens to not add too much complexity. We just express <span class="arithmatex">\(\pmb{\theta}_{i+k}\)</span> in terms of <span class="arithmatex">\(\pmb{\theta}_i\)</span> rather than <span class="arithmatex">\(\pmb{\theta}_{i+1}\)</span> in terms of <span class="arithmatex">\(\pmb{\theta}_i\)</span>. To keep the notation clean in batch form, we'll define an implicitly-indexed notation for matrices describing <span class="arithmatex">\(k\)</span> recent examples.</p>
+        <p>$X' = \begin{bmatrix}
+        \pmb{x}<em>{i + 1} &amp; \pmb{x}</em>{i+2} &amp; \cdots &amp; \pmb{x}<em>{i+k}
+        \end{bmatrix}^\intercal,
+        Y' = \begin{bmatrix}
+        y</em>{i + 1} &amp; y_{i + 2} &amp; \cdots &amp; y_{i + k}
+        \end{bmatrix}^\intercal,
+        \pmb{w}' = \begin{bmatrix}
+        \lambda^{k - 1} &amp; \lambda^{k - 2} &amp; \cdots &amp; 1
+        \end{bmatrix}^\intercal,
+        \pmb{v} = \pmb{v}_k
+        $</p>
+        <p><span class="arithmatex">\(\pmb{w} = \begin{bmatrix} \pmb{w}' \\ \pmb{v} \end{bmatrix},
+        W = \operatorname{diag}(\pmb{w})\)</span></p>
+        <p><span class="arithmatex">\(X = \begin{bmatrix} X' \\ I \end{bmatrix}, Y = \begin{bmatrix} Y' \\ \pmb{0} \end{bmatrix}\)</span></p>
+        <p><span class="arithmatex">\(R = X ^\intercal W X\)</span></p>
+        <p>This lets us cleanly express <span class="arithmatex">\(X_{i+k}\)</span>, <span class="arithmatex">\(Y_{i+k}\)</span>, and <span class="arithmatex">\(W_{i+k}\)</span> recursively.</p>
+        <p><span class="arithmatex">\(\pmb{v}_{i+k} = \lambda^k \pmb{v}_i + \pmb{v}\)</span></p>
+        <p><span class="arithmatex">\(\pmb{w}_{i+k} = \begin{bmatrix} \lambda^k \pmb{w}'_{i} \\ \pmb{w'} \\ \pmb{v}_{i+k} \end{bmatrix},
+        W_{i+k} = \operatorname{diag}(\pmb{w}_{i+k})\)</span></p>
+        <p><span class="arithmatex">\(X_{i+k} = \begin{bmatrix} X'_i \\ X' \\ I \end{bmatrix}, Y_{i+k} = \begin{bmatrix} Y'_i \\  Y' \\ \pmb{0} \end{bmatrix}\)</span></p>
+        <h3>The recursion relationship for <span class="arithmatex">\(\pmb{\theta}\)</span></h3>
+        <p>First we show that <span class="arithmatex">\(R_{i+k} = \lambda^k R_i + R\)</span>.</p>
+        <p><span class="arithmatex">\(R_{i + k} = X_{i+k} ^\intercal W_{i+k} X_{i+k}\)</span></p>
+        <p>$=
+        \begin{bmatrix} X'<em>{i}~^\intercal &amp; X'~^\intercal &amp; I \end{bmatrix}
+        \operatorname{diag}\left(\begin{bmatrix} \lambda^k \pmb{w}'</em>{i} \ \pmb{w'} \ \pmb{v}_{i+k} \end{bmatrix}\right)
+        \begin{bmatrix} X'_i \ X' \ I \end{bmatrix}
+        $</p>
+        <p>$= X'<em>i~^\intercal \operatorname{diag}(\lambda^k \pmb{w}'</em>{i}) X'_i + X'~^\intercal \operatorname{diag}(\pmb{w'})X' + I \operatorname{diag}(\lambda^k \pmb{v}_i + \pmb{v})I
+        $</p>
+        <p>$= \lambda^k(X'<em>i~^\intercal \operatorname{diag}(\pmb{w}'</em>{i}) X'_i + I \operatorname{diag}(\pmb{v}_i)I) + (X'~^\intercal \operatorname{diag}(\pmb{w}')X' + I \operatorname{diag}(\pmb{v})I)
+        $</p>
+        <p><span class="arithmatex">\(= \lambda^k X_i~^\intercal W_i X_i + X~^\intercal W X\)</span></p>
+        <p><span class="arithmatex">\(=\lambda^k R_i + R\)</span></p>
+        <p>Then we look at the equation for <span class="arithmatex">\(\pmb{\theta}_{i+k}\)</span>.</p>
+        <p><span class="arithmatex">\(\pmb{\theta}_{i+k} = P_{i+k} X_{i+k} ^\intercal W_{i+k} Y_{i+k}\)</span></p>
+        <p><span class="arithmatex">\(= P_{i+k} \begin{bmatrix} X'_{i}~^\intercal &amp; X'~^\intercal &amp; I \end{bmatrix}
+        \operatorname{diag}\left(\begin{bmatrix} \lambda^k \pmb{w}'_{i} \\ \pmb{w'} \\ \pmb{v}_{i+k} \end{bmatrix}\right) \begin{bmatrix} Y'_i \\  Y' \\ \pmb{0} \end{bmatrix}\)</span></p>
+        <p><span class="arithmatex">\(= P_{i+k} \begin{bmatrix} X'_{i}~^\intercal &amp; X'~^\intercal \end{bmatrix}
+        \operatorname{diag}\left(\begin{bmatrix} \lambda^k \pmb{w}'_{i} \\ \pmb{w'} \end{bmatrix}\right) \begin{bmatrix} Y'_i \\  Y' \end{bmatrix} + 0\)</span></p>
+        <p><span class="arithmatex">\(= P_{i+k} \left( \lambda^k X'_i~^\intercal W'_i Y'_i + X'~^\intercal W' Y' \right)\)</span></p>
+        <p><span class="arithmatex">\(= P_{i+k} \left(\lambda^k X'_i~^\intercal W'_i Y'_i + X~^\intercal W Y \right)\)</span></p>
+        <p>Since the above expression still depends on our earlier data matrices through the expression <span class="arithmatex">\(X'_i~^\intercal W'_i Y'_i\)</span>, we need to massage this a bit further. We note the following. </p>
+        <p><span class="arithmatex">\({1 \over \lambda^k} (R_{i+k} - R) = R_i\)</span> (since <span class="arithmatex">\(R_{i+k} = \lambda^k R_i + R\)</span>)</p>
+        <p><span class="arithmatex">\(X'_i~^\intercal W'_i Y'_i = X_i^\intercal W_i Y_i = R_i R_i^{-1}X_i^\intercal W_i Y_i = R_i \pmb{\theta}_i = {1 \over \lambda^k} (R_{i+k} - R) \pmb{\theta}_i = {1 \over \lambda^k} (R_{i+k} - X^\intercal W X) \pmb{\theta}_i\)</span></p>
+        <p>By plugging this equivalent statement in, we are able to drop the dependence on all previous state except the precision matrix and parameter vector.</p>
+        <p><span class="arithmatex">\(\pmb{\theta}_{i+k} = P_{i+k} \left(\lambda^k X'_i~^\intercal W'_i Y'_i + X~^\intercal W Y \right)\)</span></p>
+        <p><span class="arithmatex">\(= P_{i+k} \left( \lambda^k \left( {1 \over \lambda^k} (R_{i+k} - X^\intercal W X) \pmb{\theta}_i \right) + X~^\intercal W Y \right)\)</span></p>
+        <p><span class="arithmatex">\(= P_{i+k}\left((R_{i+k} - X^\intercal W X) \pmb{\theta}_i + X~^\intercal W Y\right)\)</span></p>
+        <p><span class="arithmatex">\(= (I - P_{i+k}X^\intercal W X) \pmb{\theta}_i + P_{i+k} X~^\intercal W Y\)</span></p>
+        <p><span class="arithmatex">\(= \pmb{\theta}_i - P_{i+k}X^\intercal W X \pmb{\theta}_i + P_{i+k} X~^\intercal W Y\)</span></p>
+        <p><span class="arithmatex">\(= \pmb{\theta}_i + P_{i+k}X^\intercal W (Y - X \pmb{\theta}_i)\)</span></p>
         <h3>Faster recursive least squares</h3>
-        <p>When we drop our <span class="arithmatex">\(\ell_2\)</span> regularization, we can apply the <a href="https://en.wikipedia.org/wiki/Woodbury_matrix_identity">Woodbury matrix identity</a> to derive what is known as <a href="https://en.wikipedia.org/wiki/Recursive_least_squares_filter">recursive least squares</a>. The Woodbury matrix identity states that when we have already computed the inverse <span class="arithmatex">\(A_0^{-1}\)</span> of matrix <span class="arithmatex">\(A_0\)</span>, and we wish to compute the inverse of an updated <span class="arithmatex">\(A = A_0 + UCV\)</span>, we can do so efficiently: </p>
+        <p>Now we can update <span class="arithmatex">\(\pmb{\theta}\)</span> after <span class="arithmatex">\(k\)</span> examples by recursively updating the covariance matrix, inverting it, and recursively updating our parameter vector. </p>
+        <p><span class="arithmatex">\(R_{i+k} = \lambda^k R_i + R\)</span></p>
+        <p><span class="arithmatex">\(\pmb{\theta}_{i+k} = \pmb{\theta}_i + R_{i+k}^{-1} X^\intercal W (Y - X \pmb{\theta}_i)\)</span></p>
+        <p>Using this approach, we incur matrix multiplication computation complexity of <span class="arithmatex">\(\mathcal{O}(kd^2 + k^2d)\)</span> and matrix inverse complexity of <span class="arithmatex">\(\mathcal{O}(d^3)\)</span>. When <span class="arithmatex">\(d &gt; k\)</span>, inverting the covariance matrix dominates. Can we improve this? Yes! We can actually speed things up with a cleverer way of updating the precision matrix. If we apply the <a href="https://en.wikipedia.org/wiki/Woodbury_matrix_identity">Woodbury matrix identity</a> to the update of the precision matrix we get the classical <a href="https://en.wikipedia.org/wiki/Recursive_least_squares_filter">recursive least squares</a> algorithm. Not only is this <span class="arithmatex">\(\mathcal{O}(kd^2 + k^2d + k^3)\)</span> instead of <span class="arithmatex">\(\mathcal{O}(d^3 + kd^2 + k^2d)\)</span>, but it's also proven to be numerically stable when run on a computer.</p>
+        <p>The Woodbury matrix identity states that when we have already computed the inverse <span class="arithmatex">\(A_0^{-1}\)</span> of matrix <span class="arithmatex">\(A_0\)</span>, and we wish to compute the inverse of an updated <span class="arithmatex">\(A = A_0 + UCV\)</span>, we can do so efficiently via the following equation.</p>
         <p><span class="arithmatex">\(A^{-1} = A_0^{-1} - A_0^{-1}U(C^{-1} + VA_0^{-1}U)^{-1}VA_0^{-1}\)</span>.</p>
-        <p>For "thin" <span class="arithmatex">\(U\)</span> and "short" <span class="arithmatex">\(V\)</span>, this results in much smaller matrix operations than the direct inversion of <span class="arithmatex">\(A\)</span>.</p>
-        <p>To apply the Woodbury matrix identity to derive recursive least squares, let's repeat the breakdown of <span class="arithmatex">\(A\)</span> from above, but without the regularization term:</p>
-        <p><span class="arithmatex">\(A = X ^\intercal \text{diag}(w) X\)</span></p>
-        <p><span class="arithmatex">\(= [X_0 ^\intercal\quad X_1 ^\intercal] diag(((1-\delta)^{m}w_0 \quad w_1))[X_0 ^\intercal\quad X_1 ^\intercal] ^\intercal\)</span></p>
-        <p><span class="arithmatex">\(= (1-\delta)^{m}X_0 ^\intercal diag(w_0)X_0 + X_1 ^\intercal diag(w_1)X_1\)</span></p>
-        <p><span class="arithmatex">\(= (1-\delta)^{m}A_0 + X_1 ^\intercal diag(w_1)X_1\)</span></p>
-        <p>If we squint, we see that this matches the <span class="arithmatex">\(A_0 + UCV\)</span> form needed for the Woodbury matrix identity. Before we plug-and-chug, let's define the constant <span class="arithmatex">\(k= \frac{1}{(1-\delta)^m}\)</span>. This helps us keep the notation clean, since:</p>
-        <p><span class="arithmatex">\(((1-\delta)^{m}A_0)^{-1} = \frac{1}{(1-\delta)^m} A_0^{-1} = k A_0^{-1}\)</span> </p>
-        <p>Armed with this, let's now use the Woodbury matrix identity to express <span class="arithmatex">\(A^{-1}\)</span> in terms of <span class="arithmatex">\(A_0^{-1}, X_1, Y_1, w_1\)</span>:</p>
-        <p><span class="arithmatex">\(A^{-1} = ((1-\delta)^{m}A_0 + X_1 ^\intercal diag(w_1)X_1)^{-1}\)</span></p>
-        <p><span class="arithmatex">\(= kA_0^{-1} - kA_0^{-1}X_1 ^\intercal (diag(w_1)^{-1} + X_1 k A_0^{-1} X_1 ^\intercal)^{-1} X_1 k A_0^{-1}\)</span></p>
-        <p><span class="arithmatex">\(= kA_0^{-1} - k^2 A_0^{-1}X_1 ^\intercal (diag(w_1)^{-1} + k X_1 A_0^{-1} X_1 ^\intercal)^{-1} X_1 A_0^{-1}\)</span></p>
-        <p>We can use the same equation for <span class="arithmatex">\(B\)</span> as above:</p>
-        <p><span class="arithmatex">\(B = (1-\delta)^{m}B_0 + X_1 ^\intercal diag(w_1)Y_1\)</span></p>
-        <p>Overall this makes our update step <span class="arithmatex">\(\mathcal{O}(md^2 + m^2d + m^3)\)</span> between the matrix multiplications and the inverse. When <span class="arithmatex">\(m=1\)</span> , using the Woodbury identity gives us <span class="arithmatex">\(\mathcal{O}(d^2)\)</span> instead of <span class="arithmatex">\(\mathcal{O}(d^3)\)</span>, a big gain.</p>
+        <p>For "thin" <span class="arithmatex">\(U\)</span> and "short" <span class="arithmatex">\(V\)</span>, this results in much smaller matrix operations than the direct inversion of <span class="arithmatex">\(A\)</span>. </p>
+        <p>If we squint at our equations above, we see there is a match between the covariance matrix update and the Woodberry equation.</p>
+        <p><span class="arithmatex">\(A = R_{i+k}, A_0 = \lambda^k R_i, U = X^\intercal, C = W, V = X\)</span></p>
+        <p><span class="arithmatex">\(A = R_{i+k} = A_0 + UCV = \lambda^k R_i + X^\intercal W X\)</span></p>
+        <p>Plugging into the Woodberry result, we get an update for <span class="arithmatex">\(P_{i+k}\)</span>.</p>
+        <p><span class="arithmatex">\(A^{-1} = R_{i+k}^{-1} = P_{i+k} = A_0^{-1} - A_0^{-1}U(C^{-1} + VA_0^{-1}U)^{-1}VA_0^{-1}\)</span></p>
+        <p><span class="arithmatex">\(=(\lambda^k R_i)^{-1} - (\lambda^k R_i)^{-1} X^\intercal (W^{-1} + X (\lambda^k R_i)^{-1} X^\intercal)^{-1} X (\lambda^k R_i)^{-1}\)</span></p>
+        <p><span class="arithmatex">\(={1 \over \lambda^k} P_i - {1 \over \lambda^k} P_i X^\intercal (W^{-1} + X {1 \over \lambda^k} P_i X^\intercal)^{-1} X {1 \over \lambda^k} P_i\)</span></p>
+        <p>We can clean this up a bit. Let's start by defining a new <span class="arithmatex">\(U\)</span> matrix so that <span class="arithmatex">\(W^{-1} = {1 \over \lambda^k} U\)</span>. Let's also look at how to construct <span class="arithmatex">\(U\)</span>.</p>
+        <p><span class="arithmatex">\(\pmb{u'} = \begin{bmatrix}
+        \lambda &amp; \lambda^2 &amp; \cdots &amp; \lambda^k
+        \end{bmatrix}^\intercal = {\lambda^k \over \pmb{w'}}\)</span></p>
+        <p><span class="arithmatex">\(\mu = {\lambda^k \over \beta \sum_{t=1}^k\lambda^{k-t}} = {\lambda^k \over v_k}\)</span>, <span class="arithmatex">\(\pmb{\mu} = \begin{bmatrix}
+        \mu &amp; \mu &amp; \cdots &amp; \mu
+        \end{bmatrix}^\intercal\)</span>, <span class="arithmatex">\(\pmb{\mu} \in \mathbb{R}^{d}\)</span></p>
+        <p><span class="arithmatex">\(\pmb{u} = \begin{bmatrix} \pmb{u}' \\ \pmb{\mu} \end{bmatrix} = {\lambda^k \over \pmb{w}}\)</span>, <span class="arithmatex">\(U = \operatorname{diag}(\pmb{u}) = \lambda^k W^{-1}\)</span></p>
+        <p>Using <span class="arithmatex">\(U\)</span> our update for the precision matrix simplifies nicely.</p>
+        <p><span class="arithmatex">\(P_{i+k} = {1 \over \lambda^k} P_i - {1 \over \lambda^k} P_i X^\intercal (W^{-1} + X {1 \over \lambda^k} P_i X^\intercal)^{-1} X {1 \over \lambda^k} P_i\)</span></p>
+        <p><span class="arithmatex">\(= {1 \over \lambda^k} P_i - {1 \over \lambda^k} P_i X^\intercal ({1 \over \lambda^k} U + X {1 \over \lambda^k} P_i X^\intercal)^{-1} X {1 \over \lambda^k} P_i\)</span></p>
+        <p><span class="arithmatex">\(= {1 \over \lambda^k} P_i - {1 \over \lambda^k} P_i X^\intercal \lambda^k(U + X P_i X^\intercal)^{-1} X {1 \over \lambda^k} P_i\)</span></p>
+        <p><span class="arithmatex">\(= {1 \over \lambda^k} \left( P_i - P_i X^\intercal (U + X P_i X^\intercal)^{-1} X P_i \right)\)</span></p>
+        <p>Here we see that the only matrix inverse remaining is now <span class="arithmatex">\(\mathcal{O}(k^3)\)</span>, with the matrix multiplications still <span class="arithmatex">\(\mathcal{O}(kd^2 + k^2d)\)</span>. Success!</p>
         <!-- EMD GENERATED FROM MARKDOWN -->
     </article>
 
