@@ -64,7 +64,7 @@
         <h2>The ML setting for RLS</h2>
         <h3>The data</h3>
         <p>We consider a process that over time generates a sequence of vectors containing predictive information, as well as corresponding scalar measurements describing outcomes we'd like to predict using the information in the vectors. We'll notate these sequences as follows.</p>
-        <p>$\pmb{x}_1, \pmb{x}_2, \pmb{x}_3, \ldots $  and <span class="arithmatex">\(y_1, y_2, y_3, \ldots\)</span></p>
+        <p><span class="arithmatex">\(\pmb{x}_1, \pmb{x}_2, \pmb{x}_3, \ldots\)</span>  and <span class="arithmatex">\(y_1, y_2, y_3, \ldots\)</span></p>
         <p>For example, perhaps <span class="arithmatex">\(\pmb{x}_i\)</span> summarizes pertinent sports statistics for a team just before its <span class="arithmatex">\(i\)</span>th game, while <span class="arithmatex">\(y_i\)</span> is that team's score in the <span class="arithmatex">\(i\)</span>th game. We'd like to predict that team's score before they play, using the statistics available before the game.</p>
         <h3>The ML objective</h3>
         <p>We seek a system that can predict outcome measurements using information vectors, <em>with minimal error.</em> While ultimately we care about the <span class="arithmatex">\(i\)</span>th model's prediction error on the <span class="arithmatex">\(i\)</span>th outcome, when it comes to training we have to settle for using relevant historical examples to quantify the error we want to minimize.</p>
@@ -90,26 +90,25 @@
         <p><span class="arithmatex">\(\pmb{w}'_i = \begin{bmatrix}
         \lambda^{i-1} &amp; \lambda^{i-2} &amp; \cdots &amp; \lambda &amp; 1
         \end{bmatrix}^\intercal, W'_i = \operatorname{diag}(\pmb{w}'_i)\)</span></p>
-        <p>$X'_i = \begin{bmatrix}
+        <p><span class="arithmatex">\(X'_i = \begin{bmatrix}
         \pmb{x}_1 &amp; \pmb{x}_2 &amp; \cdots &amp; \pmb{x}_i
         \end{bmatrix}^\intercal,
         Y'_i = \begin{bmatrix}
         y_1 &amp; y_2 &amp; \cdots &amp; y_i
-        \end{bmatrix}^\intercal
-        $</p>
+        \end{bmatrix}^\intercal\)</span></p>
         <p>Note the primes in the above names. We're actually going to put our <span class="arithmatex">\(\ell_2\)</span> regularization right into the <span class="arithmatex">\(X\)</span>, <span class="arithmatex">\(Y\)</span>, and <span class="arithmatex">\(W\)</span> matrices (see this <a href="https://stats.stackexchange.com/a/164546">CrossValidated post</a> for inspiration). Not only does this new notation keep the equations short, it also makes life a lot easier when we derive the recursive formulas.</p>
         <p>We note that <span class="arithmatex">\(\beta \operatorname{Tr}(W_i')\)</span> is our <span class="arithmatex">\(\ell_2\)</span> regularization Lagrange multiplier at time <span class="arithmatex">\(i\)</span>. We'll append <span class="arithmatex">\(d\)</span> of these values on the end of our weight vector. We'll also pad <span class="arithmatex">\(Y'\)</span> with <span class="arithmatex">\(d\)</span> zeros, and <span class="arithmatex">\(X'\)</span> with the <span class="arithmatex">\(d \times d\)</span> identity matrix. When <span class="arithmatex">\(\beta = 0\)</span>, all of these additions are zero and have no effect on the average error or its gradient.</p>
         <p><span class="arithmatex">\(v_i = \operatorname{Tr}(W'_i)\)</span></p>
         <p><span class="arithmatex">\(\pmb{v}_i = \begin{bmatrix}
         v_i &amp; v_i &amp; \cdots &amp; v_i
-        \end{bmatrix}^\intercal\)</span>, $ \pmb{v}_i \in \mathbb{R}^d$</p>
+        \end{bmatrix}^\intercal\)</span>, <span class="arithmatex">\(\pmb{v}_i \in \mathbb{R}^d\)</span></p>
         <p><span class="arithmatex">\(\pmb{0} = \begin{bmatrix} 0 &amp; 0 &amp; \cdots &amp; 0 \end{bmatrix}^\intercal\)</span>, <span class="arithmatex">\(\pmb{0} \in \mathbb{R}^d\)</span></p>
         <p><span class="arithmatex">\(\pmb{w}_i = \begin{bmatrix} \pmb{w}'_i \\ \pmb{v}_i \end{bmatrix},
         W_i = \operatorname{diag}(\pmb{w}_i)\)</span></p>
         <p><span class="arithmatex">\(X_i = \begin{bmatrix} X'_i \\ I \end{bmatrix}, Y_i = \begin{bmatrix} Y'_i \\ \pmb{0} \end{bmatrix}\)</span></p>
         <p>Now we can define our loss in matrix notation, and see that the <span class="arithmatex">\(\ell_2\)</span> regularization term has been pushed inside the new matrices.</p>
         <p><span class="arithmatex">\(L_i(\pmb{\theta}) = (Y'_i - X'_i \pmb{\theta})^\intercal W'_i (Y'_i - X'_i \pmb{\theta}) + \beta \operatorname{Tr}(W'_i) ||\pmb{\theta}||_2^2\)</span></p>
-        <p>$ = (Y'_i - X'_i \pmb{\theta})^\intercal W'_i (Y'_i - X'_i \pmb{\theta}) + \beta \operatorname{Tr}(W'_i) \pmb{\theta}^\intercal\pmb{\theta}$</p>
+        <p><span class="arithmatex">\(= (Y'_i - X'_i \pmb{\theta})^\intercal W'_i (Y'_i - X'_i \pmb{\theta}) + \beta \operatorname{Tr}(W'_i) \pmb{\theta}^\intercal\pmb{\theta}\)</span></p>
         <p><span class="arithmatex">\(= (Y_i - X_i \pmb{\theta})^\intercal W_i (Y_i - X_i \pmb{\theta})\)</span></p>
         <h3>Closed-form least-squares solution</h3>
         <p>By first order optimality conditions, <span class="arithmatex">\(\nabla L_i(\pmb{\theta}_i) = 0\)</span>. We can use this fact to derive a closed-form solution for <span class="arithmatex">\(\pmb{\theta}_i\)</span>.</p>
@@ -117,16 +116,14 @@
         <p><span class="arithmatex">\(X_i ^\intercal W_i X_i \pmb{\theta}_i = X_i ^\intercal W_i Y_i\)</span></p>
         <p><span class="arithmatex">\(\pmb{\theta}_i = (X_i ^\intercal W_i X_i )^{-1} X_i ^\intercal W_i Y_i\)</span></p>
         <p>We can also see what this looks like in the conventional definition of <span class="arithmatex">\(X, Y, W\)</span>.</p>
-        <p>$
-        \pmb{\theta}_i = 
+        <p><span class="arithmatex">\(\pmb{\theta}_i = 
         \left(
         \begin{bmatrix} X'_i~^\intercal &amp; I \end{bmatrix}
-        \operatorname{diag}\left(\begin{bmatrix} \pmb{w}'_i \ \pmb{v}_i \end{bmatrix}\right)
-        \begin{bmatrix} X'_i \ I \end{bmatrix}
+        \operatorname{diag}\left(\begin{bmatrix} \pmb{w}'_i \\ \pmb{v}_i \end{bmatrix}\right)
+        \begin{bmatrix} X'_i \\ I \end{bmatrix}
         \right)^{-1}
-        \begin{bmatrix} X'_i~^\intercal &amp; I \end{bmatrix} \operatorname{diag} \left(\begin{bmatrix} \pmb{w}'_i \ \pmb{v}_i \end{bmatrix}\right)
-        \begin{bmatrix} Y'_i &amp; \pmb{0} \end{bmatrix}
-        $</p>
+        \begin{bmatrix} X'_i~^\intercal &amp; I \end{bmatrix} \operatorname{diag} \left(\begin{bmatrix} \pmb{w}'_i \\ \pmb{v}_i \end{bmatrix}\right)
+        \begin{bmatrix} Y'_i &amp; \pmb{0} \end{bmatrix}\)</span></p>
         <p><span class="arithmatex">\(= (X'_i ~^\intercal W'_i X'_i + \beta \operatorname{Tr}(W'_i) I)^{-1} X'_i ~^\intercal W'_i Y'_i\)</span></p>
         <p>Lastly, we'll simply the expression in terms of <span class="arithmatex">\(R_i = X_i ^\intercal W_i X_i\)</span> and <span class="arithmatex">\(P_i = R_i^{-1}\)</span>. We shall refer to <span class="arithmatex">\(R_i\)</span> as the covariance matrix, since when <span class="arithmatex">\(\beta =0\)</span> and <span class="arithmatex">\(X_i\)</span> has been shifted to have zero mean in all dimensions, it represents the un-normalized time-weighted sample covariance matrix. <span class="arithmatex">\(P_i\)</span> is called the precision matrix, as it is the inverse of the covariance matrix.</p>
         <p><span class="arithmatex">\(\pmb{\theta}_i = P_i X_i ^\intercal W_i Y_i\)</span></p>
@@ -135,17 +132,16 @@
         <h3>Generalizing to batch updates</h3>
         <p>The second of two generalizations I add in this derivation that I didn't find in RLS derivations on the internet is batch updating. In many settings, it may actually be desirable update the parameter vector for more than one new point at once. For example, if database updates are done in batches to optimize performance and many new points become available simultaneously, or if we don't expect the parameter vector to change much point-to-point and we can run a batch update in a single call to an optimized linear algebra library much faster than we could run iterative updates in a loop.</p>
         <p>The generalization also happens to not add too much complexity. We just express <span class="arithmatex">\(\pmb{\theta}_{i+k}\)</span> in terms of <span class="arithmatex">\(\pmb{\theta}_i\)</span> rather than <span class="arithmatex">\(\pmb{\theta}_{i+1}\)</span> in terms of <span class="arithmatex">\(\pmb{\theta}_i\)</span>. To keep the notation clean in batch form, we'll define an implicitly-indexed notation for matrices describing <span class="arithmatex">\(k\)</span> recent examples.</p>
-        <p>$X' = \begin{bmatrix}
-        \pmb{x}<em>{i + 1} &amp; \pmb{x}</em>{i+2} &amp; \cdots &amp; \pmb{x}<em>{i+k}
+        <p><span class="arithmatex">\(X' = \begin{bmatrix}
+        \pmb{x}_{i + 1} &amp; \pmb{x}_{i+2} &amp; \cdots &amp; \pmb{x}_{i+k}
         \end{bmatrix}^\intercal,
         Y' = \begin{bmatrix}
-        y</em>{i + 1} &amp; y_{i + 2} &amp; \cdots &amp; y_{i + k}
+        y_{i + 1} &amp; y_{i + 2} &amp; \cdots &amp; y_{i + k}
         \end{bmatrix}^\intercal,
         \pmb{w}' = \begin{bmatrix}
         \lambda^{k - 1} &amp; \lambda^{k - 2} &amp; \cdots &amp; 1
         \end{bmatrix}^\intercal,
-        \pmb{v} = \pmb{v}_k
-        $</p>
+        \pmb{v} = \pmb{v}_k\)</span></p>
         <p><span class="arithmatex">\(\pmb{w} = \begin{bmatrix} \pmb{w}' \\ \pmb{v} \end{bmatrix},
         W = \operatorname{diag}(\pmb{w})\)</span></p>
         <p><span class="arithmatex">\(X = \begin{bmatrix} X' \\ I \end{bmatrix}, Y = \begin{bmatrix} Y' \\ \pmb{0} \end{bmatrix}\)</span></p>
@@ -158,15 +154,12 @@
         <h3>The recursion relationship for <span class="arithmatex">\(\pmb{\theta}\)</span></h3>
         <p>First we show that <span class="arithmatex">\(R_{i+k} = \lambda^k R_i + R\)</span>.</p>
         <p><span class="arithmatex">\(R_{i + k} = X_{i+k} ^\intercal W_{i+k} X_{i+k}\)</span></p>
-        <p>$=
-        \begin{bmatrix} X'<em>{i}~^\intercal &amp; X'~^\intercal &amp; I \end{bmatrix}
-        \operatorname{diag}\left(\begin{bmatrix} \lambda^k \pmb{w}'</em>{i} \ \pmb{w'} \ \pmb{v}_{i+k} \end{bmatrix}\right)
-        \begin{bmatrix} X'_i \ X' \ I \end{bmatrix}
-        $</p>
-        <p>$= X'<em>i~^\intercal \operatorname{diag}(\lambda^k \pmb{w}'</em>{i}) X'_i + X'~^\intercal \operatorname{diag}(\pmb{w'})X' + I \operatorname{diag}(\lambda^k \pmb{v}_i + \pmb{v})I
-        $</p>
-        <p>$= \lambda^k(X'<em>i~^\intercal \operatorname{diag}(\pmb{w}'</em>{i}) X'_i + I \operatorname{diag}(\pmb{v}_i)I) + (X'~^\intercal \operatorname{diag}(\pmb{w}')X' + I \operatorname{diag}(\pmb{v})I)
-        $</p>
+        <p><span class="arithmatex">\(=
+        \begin{bmatrix} X'_{i}~^\intercal &amp; X'~^\intercal &amp; I \end{bmatrix}
+        \operatorname{diag}\left(\begin{bmatrix} \lambda^k \pmb{w}'_{i} \\ \pmb{w'} \\ \pmb{v}_{i+k} \end{bmatrix}\right)
+        \begin{bmatrix} X'_i \\ X' \\ I \end{bmatrix}\)</span></p>
+        <p><span class="arithmatex">\(= X'_i~^\intercal \operatorname{diag}(\lambda^k \pmb{w}'_{i}) X'_i + X'~^\intercal \operatorname{diag}(\pmb{w'})X' + I \operatorname{diag}(\lambda^k \pmb{v}_i + \pmb{v})I\)</span></p>
+        <p><span class="arithmatex">\(= \lambda^k(X'_i~^\intercal \operatorname{diag}(\pmb{w}'_{i}) X'_i + I \operatorname{diag}(\pmb{v}_i)I) + (X'~^\intercal \operatorname{diag}(\pmb{w}')X' + I \operatorname{diag}(\pmb{v})I)\)</span></p>
         <p><span class="arithmatex">\(= \lambda^k X_i~^\intercal W_i X_i + X~^\intercal W X\)</span></p>
         <p><span class="arithmatex">\(=\lambda^k R_i + R\)</span></p>
         <p>Then we look at the equation for <span class="arithmatex">\(\pmb{\theta}_{i+k}\)</span>.</p>
