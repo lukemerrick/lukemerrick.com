@@ -18,9 +18,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.0/milligram.css" type="text/css">
     <link rel="stylesheet" href="https://lukemerrick.com/static/main.css" type="text/css">
 
-    <!-- Plausible.io, a simple and privacy-friendly alternative to Google Analytics. Self-hosted. -->
-    <script defer data-domain="lukemerrick.com" src="https://plausible.lukemerrick.com/js/plausible.js"></script>
-
+    <!-- Beam Analytics. -->
+    <script src="https://beamanalytics.b-cdn.net/beam.min.js" data-token="fa8a85a8-15e1-443a-96de-cb77ec3d19cb" async></script>
 </head>
 
 <body>
@@ -37,9 +36,7 @@
         <!-- BEGIN GENERATED FROM MARKDOWN -->
         <h1>Recursive Least Squares for ML</h1>
         <h2>Updates</h2>
-        <ul>
-        <li>2020.10.15 -- I rewrote a lot of this post. The motivation is generic and expanded, and the math has been massaged a bit. This makes <span class="arithmatex">\(\ell_2\)</span> regularization now included in both sets of recursive equations, as well as giving expressions that are far less numerically unstable.</li>
-        </ul>
+        <p>2020.10.15 -- I rewrote a lot of this post. The motivation is generic and expanded, and the math has been massaged a bit. This makes <span class="arithmatex">\(\ell_2\)</span> regularization now included in both sets of recursive equations, as well as giving expressions that are far less numerically unstable.</p>
         <h2>Why I'm writing this</h2>
         <p>Recently I've been working with the recursive formulation of least-squares regression. At the time of writing, there are a lot of solid resources for the signal processing view of Recursive Least Squares (like <a href="https://en.wikipedia.org/wiki/Recursive_least_squares_filter">Wikipedia's RLS article</a>), but I was unable to find a good write-up from the machine learning view (e.g. as a <a href="https://arxiv.org/abs/1805.08136">differentiable closed-form solver</a>). This is my attempt to frame things in concepts and language friendlier to machine-learning-minded people like myself.</p>
         <h2>Pre-requisite knowledge</h2>

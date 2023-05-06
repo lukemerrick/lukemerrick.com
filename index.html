@@ -18,9 +18,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.0/milligram.css" type="text/css">
     <link rel="stylesheet" href="https://lukemerrick.com/static/main.css" type="text/css">
 
-    <!-- Plausible.io, a simple and privacy-friendly alternative to Google Analytics. Self-hosted. -->
-    <script defer data-domain="lukemerrick.com" src="https://plausible.lukemerrick.com/js/plausible.js"></script>
-
+    <!-- Beam Analytics. -->
+    <script src="https://beamanalytics.b-cdn.net/beam.min.js" data-token="fa8a85a8-15e1-443a-96de-cb77ec3d19cb" async></script>
 </head>
 
 <body>
@@ -38,16 +37,42 @@
         <img src="https://lukemerrick.com/static/images/headshot.jpg" alt="Headshot" style="border-radius: 50%;"> 
     </div>
     <h1>About Me</h1>
-<p>Hi there, I'm Luke Merrick, a Data Scientist at <a href="https://myst.ai">Myst AI</a>, where I work on ML applications in time series forecasting. Below are some of my papers, talks, and external links. For my blog-post-style writing, please take a look at my posts.</p>
-<h3>Papers/writeups</h3>
+<p>(Last updated 2023-05-06)</p>
+<p>Hi there, I'm Luke Merrick, a Data Scientist previously at <a href="https://myst.ai">Myst AI</a>, now at Snowflake <a href="https://www.snowflake.com/blog/snowflake-to-acquire-myst/">after the aquisition</a>. Below are some of my writings, talks, etc.</p>
+<h3>Writing</h3>
+<h4>2022</h4>
 <ul>
-<li><a href="https://arxiv.org/abs/1909.08128">The Explanation Game: Explaining Machine Learning Models Using Shapley Values</a></li>
-<li><a href="https://arxiv.org/abs/1910.00174">Randomized Ablation Feature Importance</a>  (permutation feature importance) technical writeup</li>
+<li><a href="https://blog.myst.ai/optimizing-utility-scale-battery-storage-operations-df823572b59e">Optimizing utility-scale battery storage dispatch (Medium)</a>, published on the Myst.ai blog</li>
+<li><a href="https://blog.myst.ai/using-volatility-forecasts-to-reduce-risk-and-increase-returns-83a14cb7b50">Using volatility forecasts to reduce risk and increase returns (Medium)</a>, published on the Myst.ai blog</li>
+</ul>
+<h4>2021</h4>
+<ul>
+<li><a href="./posts/python_ml_ecosystem.html">The Uncanny Dominance of the Python ML Ecosystem</a>, thoughts on why a loose collection of Python packages stays the perennial popular choice for Machine Learning</li>
+</ul>
+<h4>2020</h4>
+<ul>
+<li><a href="./posts/recursive_least_squares.html">Recursive Least Squares Derivation</a> walks through Recursive Least Squares and derives a batch update equations friendlier to deep learning applications</li>
+</ul>
+<h4>2019</h4>
+<ul>
+<li><a href="https://arxiv.org/abs/1909.08128">The Explanation Game: Explaining Machine Learning Models Using Shapley Values (arXiv)</a>, published in <a href="https://cd-make.net/">CD-MAKE</a> 2019, best paper award</li>
+<li><a href="https://towardsdatascience.com/confidence-intervals-for-permutation-importance-2d025bc740c5">Confidence intervals for permutation importance (Medium, paywalled)</a> published on Towards Data Science</li>
+<li><a href="https://arxiv.org/abs/1910.00174">Randomized Ablation Feature Importance (arXiv)</a> (permutation feature importance), technical writeup</li>
+</ul>
+<h3>Open Source</h3>
+<ul>
+<li><a href="https://github.com/lukemerrick/InvestorsExchange.jl">InvestorsExchange.jl (GitHub)</a>, a tool to parse trade-level stock data from the IEX exchange in Julia.</li>
+<li>There was quite a <a href="https://news.ycombinator.com/item?id=32658633">reaction on HackerNews</a> because automatic recapitalization made the post title comically misinterpretable.</li>
+<li><a href="https://github.com/lukemerrick/RollingTimeWindows.jl">RollingTimeWindows.jl (GitHub)</a>, a tool for indexing time-indexed data in fixed-duration periods, even when the number of rows per period is not fixed.</li>
 </ul>
 <h3>Talks</h3>
+<h4>2020</h4>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=b8f_gTTKm2U">Explaining Feature Importance</a></li>
+</ul>
+<h4>2019</h4>
 <ul>
 <li><a href="https://www.datacouncil.ai/talks/building-explainable-ai?hsLang=en">Explaining AI: Putting Theory into Practice</a> at the Data Council 2019 conference</li>
-<li><a href="https://www.youtube.com/watch?v=b8f_gTTKm2U">Explaining Feature Importance</a></li>
 </ul>
 <h3>External Links</h3>
 <p>If you're interested in chatting about ML, quantitative trading, or explainable AI, reach out!</p>
