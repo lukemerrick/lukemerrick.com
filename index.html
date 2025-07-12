@@ -41,9 +41,24 @@
 <img src="https://lukemerrick.com/static/images/headshot.jpg" alt="Headshot" style="border-radius: 50%;"> 
 </div>
 <h1>About Me</h1>
-<p>(Last updated 2023-05-06)</p>
-<p>Hi there, I'm Luke Merrick, a Data Scientist previously at <a href="https://myst.ai">Myst AI</a>, now at Snowflake <a href="https://www.snowflake.com/blog/snowflake-to-acquire-myst/">after the aquisition</a>. Below are some of my writings, talks, etc.</p>
+<p>(Last updated 2025-07-12)</p>
+<p>Hi there, I'm Luke Merrick, a member of the technical staff at <a href="https://datologyai.com">Datology AI</a>.</p>
+<p>Below is some of my writing, code, etc.</p>
 <h3>Writing</h3>
+<h4>2025</h4>
+<ul>
+<li><a href="./posts/first_order_optimization.html">Are We Entering A First-Order Optimizer Renaissance?</a>, musings on recent progress made by Muon and other newly developed algorithms for training large neural networks faster and better</li>
+</ul>
+<h4>2024</h4>
+<ul>
+<li><a href="https://arxiv.org/abs/2412.04506">Arctic-Embed 2.0: Multilingual Retrieval Without Compromise</a>, the technical report that tells the story of Arctic Embed 2.0</li>
+<li><a href="https://arxiv.org/abs/2405.05374">Arctic-Embed: Scalable, Efficient, and Accurate Text Embedding Models</a>, the technical report describing the initial development of the <a href="https://huggingface.co/collections/Snowflake/arctic-embed-661fd57d50fab5fc314e4c18">Arctic Embed</a> text embedding models</li>
+<li><a href="https://arxiv.org/abs/2407.18887">Embedding And Clustering Your Data Can Improve Contrastive Pretraining</a>, a writeup from a research side-quest to improve contrastive pretraining in modeling efforts like Artic Embed</li>
+</ul>
+<h4>2023</h4>
+<ul>
+<li><a href="./posts/intro_to_julox.html">JuLox: What I Learned Building a Lox Interpreter in Julia</a></li>
+</ul>
 <h4>2022</h4>
 <ul>
 <li><a href="https://blog.myst.ai/optimizing-utility-scale-battery-storage-operations-df823572b59e">Optimizing utility-scale battery storage dispatch (Medium)</a>, published on the Myst.ai blog</li>
@@ -65,18 +80,13 @@
 </ul>
 <h3>Open Source</h3>
 <ul>
+<li><a href="https://github.com/snowflakedb/ArcticTraining/tree/main/projects/arctic_embed">Arctic Embed training code</a>, an open-source training loop for Arctic-Embed-style text embedding models. Includes custom data loading, loss functions, and an in-depth example.</li>
+<li><a href="https://github.com/Snowflake-Labs/sfguide-text-embedding-snowpark-container-service/tree/main/libs/lodis">Lodis: Local Dictionary Server</a>, a Python-native dictionary server for cross-process communication backed by shared memory from the operating system.</li>
+<li><a href="https://gist.github.com/lukemerrick/4e1f9921a19ec97f7b94990953c2e799">forecasting_for_utility_scale_battery_optimization.ipynb (GitHub)</a>, a notebook walking through forecast-driven optimization of utility-scale battery assets.</li>
+<li><a href="https://github.com/Snowflake-Labs/arctic-embed/blob/main/compressed_embeddings_examples/score_arctic_embed_m_v1dot5_with_quantization.ipynb">Nearest neighbor vector retrieval using integer quantized embedding vectors</a>.</li>
 <li><a href="github.com/lukemerrick/JuLox.jl">JuLox.jl (GitHub)</a>, an implementation of the Lox programming language from <em>Crafting Interpreters</em> in Julia. I also have <a href="./posts/intro_to_julox.html">a blog post about JuLox</a>.</li>
 <li><a href="https://github.com/lukemerrick/InvestorsExchange.jl">InvestorsExchange.jl (GitHub)</a>, a tool to parse trade-level stock data from the IEX exchange in Julia. There was quite a <a href="https://news.ycombinator.com/item?id=32658633">reaction on HackerNews</a> because automatic recapitalization made the post title comically misinterpretable.</li>
 <li><a href="https://github.com/lukemerrick/RollingTimeWindows.jl">RollingTimeWindows.jl (GitHub)</a>, a tool for indexing time-indexed data in fixed-duration periods, even when the number of rows per period is not fixed.</li>
-</ul>
-<h3>Talks</h3>
-<h4>2020</h4>
-<ul>
-<li><a href="https://www.youtube.com/watch?v=b8f_gTTKm2U">Explaining Feature Importance</a></li>
-</ul>
-<h4>2019</h4>
-<ul>
-<li><a href="https://www.datacouncil.ai/talks/building-explainable-ai?hsLang=en">Explaining AI: Putting Theory into Practice</a> at the Data Council 2019 conference</li>
 </ul>
 <h3>External Links</h3>
 <p>If you're interested in chatting about ML, quantitative trading, or explainable AI, reach out!</p>
